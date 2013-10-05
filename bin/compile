@@ -1,0 +1,5 @@
+bin/clean
+echo -n "compiling project... "
+find src -type f -name *.java | xargs nxjc -d classes -Xlint:deprecation
+cd classes && nxjlink -o ../Lab4.nxj Lab4
+cd .. && echo "complete!"
