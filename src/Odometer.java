@@ -1,103 +1,110 @@
+/*
+ * File: Odometer.java
+ * Written by: Sean Lawlor
+ * ECSE 211 - Design Principles and Methods, Head TA
+ * Fall 2011
+ * 
+ * Class which controls the odometer for the robot
+ * 
+ * Odometer defines cooridinate system as such...
+ * 
+ * 					90Deg:pos y-axis
+ * 							|
+ * 							|
+ * 							|
+ * 							|
+ * 180Deg:neg x-axis------------------0Deg:pos x-axis
+ * 							|
+ * 							|
+ * 							|
+ * 							|
+ * 					270Deg:neg y-axis
+ * 
+ * The odometer is initalized to 90 degrees, assuming the robot is facing up the positive y-axis
+ * 
+ */
+
 import lejos.util.Timer;
 import lejos.util.TimerListener;
 
 public class Odometer implements TimerListener {
-	public static final int DEFAULT_PERIOD = 25;
-	private TwoWheeledRobot robot;
-	private Timer odometerTimer;
-	private Navigation nav;
-	// position data
-	private Object lock;
-	private double x, y, theta;
-	private double [] oldDH, dDH;
+	private static final int PERIOD = 20;
+	private Timer timer;
 	
-	public Odometer(TwoWheeledRobot robot, int period, boolean start) {
-		// initialise variables
+	private TwoWheeledRobot robot;
+	
+	Position position;
+	
+	private double[] oldDH, dDH;
+	
+	private Object lock;
+	
+	// constructor
+	public Odometer (TwoWheeledRobot robot) {
 		this.robot = robot;
-		this.nav = new Navigation(this);
-		odometerTimer = new Timer(period, this);
-		x = 0.0;
-		y = 0.0;
-		theta = 0.0;
-		oldDH = new double [2];
-		dDH = new double [2];
+		
 		lock = new Object();
 		
-		// start the odometer immediately, if necessary
-		if (start)
-			odometerTimer.start();
+		setPosition( new Position(0.0, 0.0, Math.PI / 2) );
+		
+		this.oldDH = new double[2];
+		this.dDH = new double[2];
+		
+		(new Timer(PERIOD, this)).start();
 	}
 	
-	public Odometer(TwoWheeledRobot robot) {
-		this(robot, DEFAULT_PERIOD, false);
-	}
-	
-	public Odometer(TwoWheeledRobot robot, boolean start) {
-		this(robot, DEFAULT_PERIOD, start);
-	}
-	
-	public Odometer(TwoWheeledRobot robot, int period) {
-		this(robot, period, false);
-	}
-	
+	/*
+	 * Recompute the odometer values using the displacement and heading changes
+	 */
 	public void timedOut() {
 		robot.getDisplacementAndHeading(dDH);
-		dDH[0] -= oldDH[0];
-		dDH[1] -= oldDH[1];
+		incrPosition(dDH[0] - oldDH[0], dDH[1] - oldDH[1]);
 		
-		// update the position in a critical region
-		synchronized (lock) {
-			theta += dDH[1];
-			theta = fixDegAngle(theta);
-			
-			x += dDH[0] * Math.sin(Math.toRadians(theta));
-			y += dDH[0] * Math.cos(Math.toRadians(theta));
-		}
-		
-		oldDH[0] += dDH[0];
-		oldDH[1] += dDH[1];
+		oldDH[0] = dDH[0];
+		oldDH[1] = dDH[1];
 	}
 	
-	// accessors
-	public void getPosition(double [] pos) {
+	// get, set, incr position
+	
+	public Position getPosition() {
+		Position position = null;
 		synchronized (lock) {
-			pos[0] = x;
-			pos[1] = y;
-			pos[2] = theta;
+			position = this.position.clone();
+		}
+		return position;
+	}
+	
+	public void setPosition(Position position) {
+		synchronized (lock) {
+			this.position = position.clone();
 		}
 	}
 	
-	public TwoWheeledRobot getTwoWheeledRobot() {
-		return robot;
+	public void incrPosition(double dDistance, double dHeading) {
+		double theta = getTheta();
+		
+		double dx = dDistance * Math.cos(theta);
+		double dy = dDistance * Math.sin(theta);
+		
+		incrPosition(dx, dy, dHeading);
 	}
 	
-	public Navigation getNavigation() {
-		return this.nav;
-	}
-	
-	// mutators
-	public void setPosition(double [] pos, boolean [] update) {
+	public void incrPosition(double dx, double dy, double dtheta) {
 		synchronized (lock) {
-			if (update[0]) x = pos[0];
-			if (update[1]) y = pos[1];
-			if (update[2]) theta = pos[2];
+			this.position.x += dx;
+			this.position.y += dy;
+			this.position.theta = Angle.normalize(this.position.theta + dtheta);
 		}
 	}
 	
-	// static 'helper' methods
-	public static double fixDegAngle(double angle) {		
-		if (angle < 0.0)
-			angle = 360.0 + (angle % 360.0);
-		
-		return angle % 360.0;
+	// 0 <= theta < 2π
+	public double getTheta() {
+		double result;
+		synchronized (lock) { result = position.theta; }
+		return result;
 	}
 	
-	public static double minimumAngleFromTo(double a, double b) {
-		double d = fixDegAngle(b - a);
-		
-		if (d < 180.0)
-			return d;
-		else
-			return d - 360.0;
+	public TwoWheeledRobot getRobot() {
+		return this.robot;
 	}
 }

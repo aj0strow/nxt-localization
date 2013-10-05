@@ -4,14 +4,14 @@ public class USLocalizer {
 	public enum LocalizationType { FALLING_EDGE, RISING_EDGE };
 	public static double ROTATION_SPEED = 30;
 
-	private Odometer odo;
+	private Odometer odometer;
 	private TwoWheeledRobot robot;
 	private UltrasonicSensor us;
 	private LocalizationType locType;
 	
-	public USLocalizer(Odometer odo, UltrasonicSensor us, LocalizationType locType) {
-		this.odo = odo;
-		this.robot = odo.getTwoWheeledRobot();
+	public USLocalizer(Odometer odometer, UltrasonicSensor us, LocalizationType locType) {
+		this.odometer = odometer;
+		this.robot = odometer.getRobot();
 		this.us = us;
 		this.locType = locType;
 		
@@ -36,7 +36,7 @@ public class USLocalizer {
 			// angles to the right of angleB is 45 degrees past 'north'
 			
 			// update the odometer position (example to follow:)
-			odo.setPosition(new double [] {0.0, 0.0, 0.0}, new boolean [] {true, true, true});
+			odometer.setPosition(new Position(0.0, 0.0, 0.0));
 		} else {
 			/*
 			 * The robot should turn until it sees the wall, then look for the

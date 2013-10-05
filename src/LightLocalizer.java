@@ -7,7 +7,7 @@ public class LightLocalizer {
 	
 	public LightLocalizer(Odometer odo, LightSensor ls) {
 		this.odo = odo;
-		this.robot = odo.getTwoWheeledRobot();
+		this.robot = odo.getRobot();
 		this.ls = ls;
 		
 		// turn on the light
