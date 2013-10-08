@@ -11,14 +11,11 @@ public class Lab4 {
 		TwoWheeledRobot robot = new TwoWheeledRobot(Motor.A, Motor.B);
 		
 		Odometer odometer = new Odometer(robot);
-		Navigation navigation = new Navigation(odometer);
+		UltrasonicLocalizer ultrasonicLocalizer = new UltrasonicLocalizer(odometer, SensorPort.S2);
+		ultrasonicLocalizer.localize();
 		
-		navigation.turnTo(0.0);
-		waitFor(navigation);
-		navigation.turnTo(3 * Math.PI / 2);
-		waitFor(navigation);
-		navigation.turnTo(Math.PI);
-		waitFor(navigation);
+		// Navigation navigation = new Navigation(odometer);
+		
 		
 		/*
 		Point[] destinations = new Point[]{

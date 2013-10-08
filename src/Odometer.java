@@ -26,6 +26,7 @@
 
 import lejos.util.Timer;
 import lejos.util.TimerListener;
+import lejos.nxt.LCD;
 
 public class Odometer implements TimerListener {
 	private static final int PERIOD = 20;
@@ -106,5 +107,13 @@ public class Odometer implements TimerListener {
 	
 	public TwoWheeledRobot getRobot() {
 		return this.robot;
+	}
+	
+	public void displayPosition() {
+		Position p = getPosition();
+		LCD.clear();
+		LCD.drawString("x: " + p.x, 0, 0);
+		LCD.drawString("y: " + p.y, 0, 1);
+		LCD.drawString("t: " + p.theta, 0, 2);
 	}
 }
