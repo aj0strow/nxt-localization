@@ -47,16 +47,29 @@ public class UltrasonicLocalizer implements TimerListener {
 				if (distance < 25) {
 					stopAngle = odometer.getTheta();
 					
+					double midAngle =  Angle.between(startAngle, stopAngle);
+					
+					LCD.clear();
+					LCD.drawString("high: " + Math.toDegrees(startAngle), 0, 0);
+					LCD.drawString("low:  " + Math.toDegrees(stopAngle), 0, 1);
+					LCD.drawString("mid:  " + Math.toDegrees(midAngle), 0, 2);
+					
 					if (Double.isNaN(firstAngle)) {
-						this.firstAngle = Angle.between(startAngle, stopAngle);
+						this.firstAngle = midAngle;
 						resetEdgeAngles();
 						robot.setSpeeds(0.0, -ROTATION_SPEED);
 					} else {
 						robot.setSpeeds(0.0, 0.0);
-						this.secondAngle = Angle.between(startAngle, stopAngle);
+						this.secondAngle = midAngle;
 						
 						double cornerAngle = Angle.normalize(secondAngle - Math.abs(secondAngle - firstAngle) / 2);
 						double dTheta = Angle.difference(cornerAngle, 5 * Math.PI / 4);
+						
+						LCD.clear();
+						LCD.drawString("1st: " + Math.toDegrees(firstAngle), 0, 0);
+						LCD.drawString("2nd: " + Math.toDegrees(secondAngle), 0, 1);
+						LCD.drawString("dTh: " + Math.toDegrees(dTheta), 0, 2);
+						
 						odometer.incrPosition(0.0, 0.0, dTheta);
 						timer.stop();
 						odometer.displayPosition();
